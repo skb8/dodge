@@ -16,8 +16,7 @@ fi
 repo sync -c -j"${SYNC_JOBS:-4}" --no-clone-bundle --no-tags
 mkdir -p "$DEVICE_DIR/artifacts"
 repo manifest -r -o "$DEVICE_DIR/artifacts/oneplus-kernel-manifest.xml"
-# The official entry point builds the matching kernel/platform/module symbol set.
-# PIPEFAIL is inherited because upstream's wrapper pipes the build through tee.
-# The upstream timer calls tput; a hosted runner has no interactive TERM.
-env TERM=xterm SHELLOPTS=errexit:pipefail bash kernel_platform/oplus/build/oplus_build_kernel.sh sun perf
+# Preserve the official build environment while explicitly checking its result.
+# Inherited errexit breaks upstream config/variant discovery in child shells.
+env -u SHELLOPTS TERM=xterm bash "$DEVICE_DIR/scripts/run-oneplus-build.sh" "$KERNEL_DIR"
 python3 "$DEVICE_DIR/scripts/collect-wifi-modules.py" "$KERNEL_DIR" "$DEVICE_DIR/wifi/modules"

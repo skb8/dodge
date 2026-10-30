@@ -66,13 +66,22 @@ class KernelRunnerTests(unittest.TestCase):
             device = work / 'device/scripts'
             device.mkdir(parents=True)
             shutil.copy2(ROOT / 'scripts/build-oneplus-wifi.sh', device / 'build-oneplus-wifi.sh')
+            shutil.copy2(ROOT / 'scripts/run-oneplus-build.sh', device / 'run-oneplus-build.sh')
             (device / 'collect-wifi-modules.py').write_text('raise SystemExit("must not collect a failed build")')
             kernel = work / 'kernel'
             (kernel / '.repo').mkdir(parents=True)
             upstream = kernel / 'kernel_platform/oplus/build'
             upstream.mkdir(parents=True)
-            (upstream / 'oplus_build_kernel.sh').write_text(
-                '#!/bin/bash\n[[ "$TERM" == xterm ]] || exit 99\necho "kernel failure fixture"\nexit 7\n')
+            (upstream / 'oplus_setup.sh').write_text(
+                'init_build_environment() { export ANDROID_PRODUCT_OUT="$PWD/out/target/product/sun"; TOPDIR="$PWD"; }\n'
+                'build_start_time() { return 0; }\nbuild_end_time() { return 0; }\n')
+            prepare = kernel / 'kernel_platform/build/android/prepare_vendor.sh'
+            prepare.parent.mkdir(parents=True)
+            prepare.write_text('#!/bin/bash\n[[ "$TERM" == xterm ]] || exit 99\n'
+                               '[[ -d "$ANDROID_PRODUCT_OUT" ]] || exit 98\n'
+                               '[[ "$SHELLOPTS" != *errexit* ]] || exit 97\n'
+                               'echo "kernel failure fixture"\nexit 7\n')
+            prepare.chmod(0o755)
             tools = work / 'bin'
             tools.mkdir()
             repo = tools / 'repo'

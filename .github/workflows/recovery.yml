@@ -65,7 +65,7 @@ jobs:
           path: |
             wifi/modules
             artifacts/oneplus-kernel-manifest.xml
-          key: ${{ runner.os }}-oneplus13-wlan-v1-${{ hashFiles('.source-lock/oneplus_13_b.xml', 'scripts/build-oneplus-wifi.sh', 'scripts/collect-wifi-modules.py', 'scripts/lock-oneplus-source.py', 'scripts/check-wlan-cache.py') }}
+          key: ${{ runner.os }}-oneplus13-wlan-v1-${{ hashFiles('.source-lock/oneplus_13_b.xml', 'scripts/build-oneplus-wifi.sh', 'scripts/run-oneplus-build.sh', 'scripts/collect-wifi-modules.py', 'scripts/lock-oneplus-source.py', 'scripts/check-wlan-cache.py') }}
       - name: Free runner space
         if: steps.wlan-cache.outputs.cache-hit != 'true'
         run: |

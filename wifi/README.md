@@ -65,7 +65,8 @@ was `d50b305f7da9e14715a25120a4ac7b1a4b8b97c3` on
 `oneplus/sm8750_b_16.0.0_oneplus_13`.
 
 `scripts/build-oneplus-wifi.sh` syncs the full manifest, builds through OnePlus's
-`oplus_build_kernel.sh sun perf`, and stages only WLAN and its transitive module
+setup and `prepare_vendor.sh sun perf` path used by `oplus_build_kernel.sh`,
+and stages only WLAN and its transitive module
 dependencies. Source manifests and module vermagic accompany the build artifacts.
 No kernel or camera driver is added to recovery.img. Source modules are optional
 for manual local builds, and enabled by default in the push/dispatch workflow.
