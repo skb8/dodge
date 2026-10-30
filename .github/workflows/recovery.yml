@@ -12,6 +12,11 @@ on:
         type: boolean
         default: true
 
+# An explicit bash shell enables pipefail for build-script | tee pipelines.
+defaults:
+  run:
+    shell: bash
+
 permissions:
   contents: read
 

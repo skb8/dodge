@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 (ROOT / ".tests-build").mkdir(exist_ok=True)
 
 class BuildFailureTests(unittest.TestCase):
-    def run_build(self, envsetup):
+    def run_build(self, envsetup, pipeline=False):
         with tempfile.TemporaryDirectory(dir=ROOT / '.tests-build') as directory:
             work = Path(directory)
             scripts = work / 'device/scripts'
@@ -25,13 +25,24 @@ class BuildFailureTests(unittest.TestCase):
             android = work / 'android'
             (android / 'build').mkdir(parents=True)
             (android / 'build/envsetup.sh').write_text(envsetup)
-            return subprocess.run(['bash', str(scripts / 'build-recovery.sh'), str(android)],
-                                  capture_output=True, text=True)
+            command = ['bash', str(scripts / 'build-recovery.sh'), str(android)]
+            if pipeline:
+                command = ['bash', '--noprofile', '--norc', '-e', '-o', 'pipefail', '-c',
+                           'bash "$1" "$2" 2>&1 | tee "$3"', 'ci',
+                           str(scripts / 'build-recovery.sh'), str(android), str(work / 'build.log')]
+            return subprocess.run(command, capture_output=True, text=True)
 
     def test_envsetup_disables_errexit_then_lunch_fails(self):
         result = self.run_build('set +e\nlunch() { return 3; }\nmka() { return 0; }\n')
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('Android lunch failed', result.stderr)
+
+    def test_compile_failure_survives_workflow_log_pipeline(self):
+        workflow = (ROOT / '.github/workflows/recovery.yml').read_text()
+        self.assertIn('defaults:\n  run:\n    shell: bash', workflow)
+        result = self.run_build('set +e\nlunch() { return 0; }\nmka() { return 7; }\n', pipeline=True)
+        self.assertEqual(result.returncode, 7)
+        self.assertIn('Recovery compilation failed', result.stdout)
 
     def test_compile_failure_is_propagated(self):
         result = self.run_build('set +e\nlunch() { return 0; }\nmka() { return 7; }\n')
