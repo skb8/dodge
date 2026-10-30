@@ -59,6 +59,32 @@ class BuildFailureTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('Missing/oversized recovery.img', result.stderr)
 
+class KernelRunnerTests(unittest.TestCase):
+    def test_headless_terminal_and_kernel_failure_status(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / '.tests-build') as directory:
+            work = Path(directory)
+            device = work / 'device/scripts'
+            device.mkdir(parents=True)
+            shutil.copy2(ROOT / 'scripts/build-oneplus-wifi.sh', device / 'build-oneplus-wifi.sh')
+            (device / 'collect-wifi-modules.py').write_text('raise SystemExit("must not collect a failed build")')
+            kernel = work / 'kernel'
+            (kernel / '.repo').mkdir(parents=True)
+            upstream = kernel / 'kernel_platform/oplus/build'
+            upstream.mkdir(parents=True)
+            (upstream / 'oplus_build_kernel.sh').write_text(
+                '#!/bin/bash\n[[ "$TERM" == xterm ]] || exit 99\necho "kernel failure fixture"\nexit 7\n')
+            tools = work / 'bin'
+            tools.mkdir()
+            repo = tools / 'repo'
+            repo.write_text('#!/bin/bash\nexit 0\n')
+            repo.chmod(0o755)
+            import os
+            env = dict(os.environ, PATH=str(tools) + ':' + os.environ['PATH'], TERM='dumb')
+            result = subprocess.run(['bash', str(device / 'build-oneplus-wifi.sh'), str(kernel)],
+                                    env=env, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 7)
+            self.assertIn('kernel failure fixture', result.stdout)
+
 class ModuleCacheTests(unittest.TestCase):
     def check_package(self, locked='a' * 40, built='a' * 40, missing_dependency=False):
         with tempfile.TemporaryDirectory(dir=ROOT / '.tests-build') as directory:

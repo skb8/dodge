@@ -18,5 +18,6 @@ mkdir -p "$DEVICE_DIR/artifacts"
 repo manifest -r -o "$DEVICE_DIR/artifacts/oneplus-kernel-manifest.xml"
 # The official entry point builds the matching kernel/platform/module symbol set.
 # PIPEFAIL is inherited because upstream's wrapper pipes the build through tee.
-env SHELLOPTS=errexit:pipefail bash kernel_platform/oplus/build/oplus_build_kernel.sh sun perf
+# The upstream timer calls tput; a hosted runner has no interactive TERM.
+env TERM=xterm SHELLOPTS=errexit:pipefail bash kernel_platform/oplus/build/oplus_build_kernel.sh sun perf
 python3 "$DEVICE_DIR/scripts/collect-wifi-modules.py" "$KERNEL_DIR" "$DEVICE_DIR/wifi/modules"
