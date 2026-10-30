@@ -68,7 +68,7 @@ private:
         sockaddr_un local{}, remote{}; local.sun_family = remote.sun_family = AF_UNIX;
         snprintf(local.sun_path + 1, sizeof(local.sun_path) - 1, "dodge-wifi-events-%d", getpid());
         snprintf(remote.sun_path, sizeof(remote.sun_path), "%s", kControl);
-        if (bind(events, reinterpret_cast<sockaddr*>(&local), sizeof(local)) < 0 ||
+        if (::bind(events, reinterpret_cast<sockaddr*>(&local), sizeof(local)) < 0 ||
             connect(events, reinterpret_cast<sockaddr*>(&remote), sizeof(remote)) < 0 ||
             send(events, "ATTACH", 6, 0) != 6) CloseEvents();
     }

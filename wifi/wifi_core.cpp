@@ -196,7 +196,7 @@ std::string Request(const std::string& path, const std::string& command, int tim
     snprintf(local.sun_path + 1, sizeof(local.sun_path) - 1, "dodge-wifi-%d-%u", getpid(), ++seq);
     if (path.size() >= sizeof(remote.sun_path)) return {};
     memcpy(remote.sun_path, path.c_str(), path.size() + 1);
-    if (bind(sock.fd, reinterpret_cast<sockaddr*>(&local), sizeof(local)) < 0 ||
+    if (::bind(sock.fd, reinterpret_cast<sockaddr*>(&local), sizeof(local)) < 0 ||
         connect(sock.fd, reinterpret_cast<sockaddr*>(&remote), sizeof(remote)) < 0 ||
         send(sock.fd, command.data(), command.size(), 0) != static_cast<ssize_t>(command.size()) ||
         !Ready(sock.fd, POLLIN, timeout_ms)) return {};

@@ -18,6 +18,9 @@ for file in (root / 'wifi').glob('*'):
         shutil.copy2(file, work / 'dodge_wifi' / file.name)
 (work / 'data.hpp').write_text('''#pragma once
 #include <string>
+#include <functional>
+// Match the std namespace exposure of the real recovery data.hpp.
+using namespace std;
 class DataManager { public:
 static std::string GetStrValue(const std::string&);
 static int SetValue(const std::string&, const std::string&, int = 0);
