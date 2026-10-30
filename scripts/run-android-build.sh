@@ -8,4 +8,7 @@ source build/envsetup.sh || { echo 'Android envsetup failed' >&2; exit 1; }
 export ALLOW_MISSING_DEPENDENCIES=false
 lunch twrp_dodge-ap2a-eng || { echo 'Android lunch failed' >&2; exit 1; }
 set -eo pipefail
+# Compile the standalone supplicant first: a missing Make module must fail early,
+# rather than silently producing a recovery image without Wi-Fi.
+mka -j"${BUILD_JOBS:-4}" wpa_supplicant_dodge || { status=$?; echo 'Recovery Wi-Fi executable build failed' >&2; exit "$status"; }
 mka -j"${BUILD_JOBS:-4}" adbd recoveryimage || { status=$?; echo 'Recovery compilation failed' >&2; exit "$status"; }

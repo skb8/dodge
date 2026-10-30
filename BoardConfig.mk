@@ -186,5 +186,6 @@ TW_INCLUDE_OMAPI := true
 #
 
 # Standalone recovery Wi-Fi (no Android Framework or vendor Wi-Fi HAL).
+WPA_SUPPLICANT_VERSION := VER_0_8_X
 BOARD_WPA_SUPPLICANT_DRIVER := NL80211
 TARGET_RECOVERY_DEVICE_MODULES += wpa_supplicant_dodge libnl libssl libcrypto

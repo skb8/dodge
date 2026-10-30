@@ -40,14 +40,23 @@ class BuildFailureTests(unittest.TestCase):
     def test_compile_failure_survives_workflow_log_pipeline(self):
         workflow = (ROOT / '.github/workflows/recovery.yml').read_text()
         self.assertIn('defaults:\n  run:\n    shell: bash', workflow)
-        result = self.run_build('set +e\nlunch() { return 0; }\nmka() { return 7; }\n', pipeline=True)
+        result = self.run_build('set +e\nlunch() { return 0; }\nmka() { [[ \"$*\" == *wpa_supplicant_dodge* ]] && return 0; return 7; }\n', pipeline=True)
         self.assertEqual(result.returncode, 7)
         self.assertIn('Recovery compilation failed', result.stdout)
 
     def test_compile_failure_is_propagated(self):
-        result = self.run_build('set +e\nlunch() { return 0; }\nmka() { return 7; }\n')
+        result = self.run_build('set +e\nlunch() { return 0; }\nmka() { [[ \"$*\" == *wpa_supplicant_dodge* ]] && return 0; return 7; }\n')
         self.assertEqual(result.returncode, 7)
         self.assertIn('Recovery compilation failed', result.stderr)
+
+    def test_missing_supplicant_target_stops_before_recovery_compilation(self):
+        result = self.run_build('lunch() { return 0; }\nmka() { '
+                                'if [[ "$*" == *wpa_supplicant_dodge* ]]; then '
+                                'echo "unknown target wpa_supplicant_dodge" >&2; return 9; fi; '
+                                'echo RECOVERY_CALLED; return 0; }\n')
+        self.assertEqual(result.returncode, 9)
+        self.assertIn('Recovery Wi-Fi executable build failed', result.stderr)
+        self.assertNotIn('RECOVERY_CALLED', result.stdout)
 
     def test_shell_exits_zero_without_an_image_is_not_a_success(self):
         result = self.run_build('exit 0\n')
