@@ -1,0 +1,222 @@
+diff --git a/Android.mk b/Android.mk
+index fc1f1f1..2ddcf59 100755
+--- a/Android.mk
++++ b/Android.mk
+@@ -37,6 +37,7 @@ endif
+ LOCAL_CFLAGS += -DPLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
+ 
+ LOCAL_SRC_FILES := \
++    dodge_wifi/wifi_prepare.cpp \
+     twrp.cpp \
+     fixContexts.cpp \
+     twrpTar.cpp \
+diff --git a/gui/Android.bp b/gui/Android.bp
+index 2e54e5a..9ce14ed 100644
+--- a/gui/Android.bp
++++ b/gui/Android.bp
+@@ -60,6 +60,8 @@ cc_library_static {
+         "text.cpp",
+         "image.cpp",
+         "action.cpp",
++        "../dodge_wifi/wifi.cpp",
++        "../dodge_wifi/wifi_core.cpp",
+         "console.cpp",
+         "fill.cpp",
+         "button.cpp",
+@@ -88,6 +90,7 @@ cc_library_static {
+     shared_libs: [
+         "libminuitwrp",
+         "libc",
++        "libcutils",
+         "libstdc++",
+         "libaosprecovery",
+         "libselinux",
+diff --git a/gui/action.cpp b/gui/action.cpp
+index 293dd16..cdd6e1b 100755
+--- a/gui/action.cpp
++++ b/gui/action.cpp
+@@ -67,6 +67,7 @@ extern "C" {
+ 
+ #include "rapidxml.hpp"
+ #include "objects.hpp"
++#include "../dodge_wifi/wifi.hpp"
+ #include "tw_atomic.hpp"
+ 
+ GUIAction::mapFunc GUIAction::mf;
+@@ -201,6 +202,7 @@ GUIAction::GUIAction(xml_node <> *node):GUIObject(node)
+ #define ADD_ACTION(n) mf[#n] = &GUIAction::n
+ #define ADD_ACTION_EX(name, func) mf[name] = &GUIAction::func
+       // These actions will be run in the caller's thread
++      ADD_ACTION(wifi);
+       ADD_ACTION(reboot);
+       ADD_ACTION(home);
+       ADD_ACTION(key);
+@@ -264,6 +266,7 @@ GUIAction::GUIAction(xml_node <> *node):GUIObject(node)
+ 	setActionsRunningInCallerThread.insert(it->first);
+ 
+       // These actions will run in a separate thread
++      ADD_ACTION(wifiprepare);
+       ADD_ACTION(flash);
+       ADD_ACTION(wipe);
+       ADD_ACTION(refreshsizes);
+@@ -687,6 +690,21 @@ void GUIAction::operation_end(const int operation_status)
+ 	LOGINFO("operation_end - status=%d\n", operation_status);
+ }
+ 
++int GUIAction::wifi(std::string arg)
++{
++  if (!simulate) dodge_wifi::Action(arg);
++  return 0;
++}
++
++int GUIAction::wifiprepare(std::string arg __unused)
++{
++  operation_start("Wi-Fi");
++  bool ready = simulate || dodge_wifi::PrepareDriver();
++  property_set("sys.dodge.wifi.driver_ready", ready ? "1" : "0");
++  operation_end(ready ? 0 : 1);
++  return ready ? 0 : 1;
++}
++
+ int GUIAction::reboot(std::string arg)
+ {
+   sync();
+diff --git a/gui/gui.cpp b/gui/gui.cpp
+index 5a76d3e..5263393 100644
+--- a/gui/gui.cpp
++++ b/gui/gui.cpp
+@@ -47,6 +47,7 @@ extern "C"
+ #include "rapidxml.hpp"
+ #include "objects.hpp"
+ #include "../data.hpp"
++#include "../dodge_wifi/wifi.hpp"
+ #include "../variables.h"
+ #include "../partitions.hpp"
+ #include "../twrp-functions.hpp"
+@@ -789,6 +790,7 @@ static int runPages(const char *page_name, const int stop_on_page_done)
+ 
+ 		if (!gForceRender.get_value())
+ 		{
++			dodge_wifi::Pump();
+ 			int ret = PageManager::Update();
+ 			if (ret == 0)
+ 				++idle_frames;
+diff --git a/gui/objects.hpp b/gui/objects.hpp
+index bdf35bd..82e0680 100644
+--- a/gui/objects.hpp
++++ b/gui/objects.hpp
+@@ -359,6 +359,8 @@ protected:
+ 	static std::set<std::string> setActionsRunningInCallerThread;
+ 
+ 	// GUI actions
++	int wifi(std::string arg);
++	int wifiprepare(std::string arg);
+ 	int reboot(std::string arg);
+ 	int home(std::string arg);
+ 	int key(std::string arg);
+diff --git a/gui/pages.cpp b/gui/pages.cpp
+index b182575..927b50d 100755
+--- a/gui/pages.cpp
++++ b/gui/pages.cpp
+@@ -1651,6 +1651,10 @@ std::string PageManager::GetCurrentPage()
+ 
+ int PageManager::ChangeOverlay(std::string name)
+ {
++    if (name == "lock") {
++        DataManager::SetValue("dodge_wifi_password", "");
++        DataManager::SetValue("dodge_wifi_show_password", "0");
++    }
+ 	if (name.empty())
+ 		return mCurrentSet->SetOverlay(NULL);
+ 	else
+diff --git a/gui/theme/portrait_hdpi/pages/anywhere.xml b/gui/theme/portrait_hdpi/pages/anywhere.xml
+index 6a0e9dc..eb0d73a 100644
+--- a/gui/theme/portrait_hdpi/pages/anywhere.xml
++++ b/gui/theme/portrait_hdpi/pages/anywhere.xml
+@@ -6,6 +6,15 @@
+ 			<template name="status_bg"/>
+ 			<template name="statusbarinfo"/>
+ 			<template name="keys"/>
++            <text style="text_body2_dark">
++                <placement x="%center_x%" y="%row6_1_y%" placement="5"/>
++                <text>%dodge_wifi_status%</text>
++            </text>
++            <text style="text_body2_dark">
++                <placement x="%center_x%" y="%row6_2_y%" placement="5"/>
++                <text>%dodge_wifi_ssid%</text>
++            </text>
++
+ 
+ 			<button>
+ 				<condition var1="lock_action" var2="1"/>
+@@ -81,14 +90,23 @@
+ 			<template name="keys"/>
+ 			<template name="status_bg"/>
+ 			<template name="statusbarinfo"/>
++
++            <text style="text_body1_dark">
++                <placement x="%col1_x%" y="%ab_bc_y%"/>
++                <text>Wi-Fi · %dodge_wifi_status%</text>
++            </text>
++            <text style="text_body2_dark">
++                <placement x="%col1_x%" y="%ab_h%"/>
++                <text>%dodge_wifi_ssid% · %dodge_wifi_ip%</text>
++            </text>
+ 			
+ 			<console>
+-				<placement x="%col1_x%" y="%ab_bc_y%" w="%console_width%" h="%console_height%"/> 
++				<placement x="%col1_x%" y="%dodge_wifi_console_y%" w="%console_width%" h="%dodge_wifi_console_h%"/>
+ 				<condition var1="use_fixed_font" var2="0"/>
+ 			</console>
+ 			
+ 			<console>
+-				<placement x="%col1_x%" y="%ab_bc_y%" w="%console_width%" h="%console_height%"/> 
++				<placement x="%col1_x%" y="%dodge_wifi_console_y%" w="%console_width%" h="%dodge_wifi_console_h%"/>
+ 				<condition var1="use_fixed_font" var2="1"/>
+ 				<font resource="fixed"/>
+ 			</console>
+diff --git a/gui/theme/portrait_hdpi/pages/settings.xml b/gui/theme/portrait_hdpi/pages/settings.xml
+index db82784..ad37531 100644
+--- a/gui/theme/portrait_hdpi/pages/settings.xml
++++ b/gui/theme/portrait_hdpi/pages/settings.xml
+@@ -6,6 +6,10 @@
+ 			<listbox style="group_list">
+ 				<placement x="0" y="%ab_h%" w="%screen_w%" h="%bl_fullscreen_h%"/>
+ 				<iconsize w="216" h="168" padding="24"/>
++                <listitem name="Wi-Fi">
++                    <icon res="bs_btn_set_global"/>
++                    <action function="page">dodge_wifi</action>
++                </listitem>
+ 				<listitem name="{@settings_general}">
+ 					<icon res="bs_btn_set_global"/>
+ 					<action function="set">general_back=settings</action>
+diff --git a/gui/theme/portrait_hdpi/resources/vars.xml b/gui/theme/portrait_hdpi/resources/vars.xml
+index 7dcffc2..362b76f 100644
+--- a/gui/theme/portrait_hdpi/resources/vars.xml
++++ b/gui/theme/portrait_hdpi/resources/vars.xml
+@@ -1,6 +1,13 @@
+ <?xml version="1.0"?>
+ <recovery>
+ 	<variables>
++        <variable name="dodge_wifi_enabled" value="0"/>
++        <variable name="dodge_wifi_generation" value="0"/>
++        <variable name="dodge_wifi_show_password" value="0"/>
++        <variable name="dodge_wifi_count" value="0"/>
++        <variable name="dodge_wifi_list_h" value="%screen_h%-%row2_1_y%-%nav_h%"/>
++        <variable name="dodge_wifi_console_y" value="%ab_bc_y%+192"/>
++        <variable name="dodge_wifi_console_h" value="%console_height%-192"/>
+ 		<!-- Cutout -->
+ 		<variable name="center_clock" value="2" persist="1"/> <!-- default clock placement (0 - right; 1 - center; 2 - left) -->
+ 		
+diff --git a/gui/theme/portrait_hdpi/ui.xml b/gui/theme/portrait_hdpi/ui.xml
+index 99eed88..e5cb55a 100644
+--- a/gui/theme/portrait_hdpi/ui.xml
++++ b/gui/theme/portrait_hdpi/ui.xml
+@@ -35,6 +35,7 @@
+ 		<xml name="/twres/pages/advanced.xml"/>
+ 		<xml name="/twres/pages/reboot.xml"/>
+ 		<xml name="/twres/pages/settings.xml"/>
++		<xml name="/twres/pages/wifi.xml"/>
+ 		<xml name="/twres/pages/universal.xml"/>
+ 		<xml name="/twres/pages/anywhere.xml"/>
+ 		<xml name="/twres/pages/dialogs.xml"/>

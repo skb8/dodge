@@ -1,0 +1,11 @@
+diff --git a/Android.bp b/Android.bp
+--- a/Android.bp
++++ b/Android.bp
+@@ -39,6 +39,7 @@
+ cc_library {
+     name: "libnl",
+     host_supported: true,
++    recovery_available: true,
+     vendor_available: true,
+     product_available: true,
+     vndk: {

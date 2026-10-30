@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="wifi_enable">Включить Wi-Fi</string>
+  <string name="wifi_disable">Выключить Wi-Fi</string>
+  <string name="wifi_scan">Обновить список сетей</string>
+  <string name="wifi_disconnect">Отключиться</string>
+  <string name="wifi_connect">Подключиться</string>
+  <string name="wifi_password">Пароль</string>
+  <string name="wifi_show_password">Показать пароль</string>
+  <string name="wifi_off">Wi-Fi выключен</string>
+  <string name="wifi_online">Интернет доступен</string>
+  <string name="wifi_unverified">Подключено; интернет не подтверждён</string>
+  <string name="wifi_captive_portal">Требуется вход в сеть</string>
+  <string name="wifi_starting">Запуск Wi-Fi</string>
+  <string name="wifi_scanning">Поиск сетей</string>
+  <string name="wifi_associating">Подключение</string>
+  <string name="wifi_obtaining_ip">Получение IP-адреса</string>
+  <string name="wifi_checking">Проверка интернета</string>
+  <string name="wifi_authentication_failed">Ошибка авторизации; проверьте пароль</string>
+  <string name="wifi_invalid_password">Некорректный пароль</string>
+  <string name="wifi_dhcp_failed">Не удалось получить IP-адрес</string>
+  <string name="wifi_connection_timeout">Время подключения истекло</string>
+  <string name="wifi_unavailable">Драйвер или служба Wi-Fi недоступны</string>
+  <string name="wifi_supplicant_error">Ошибка запроса подключения</string>
+  <string name="wifi_disconnected">Нет подключения</string>
+  <string name="wifi_unsupported">Этот тип защиты не поддерживается</string>
+</resources>

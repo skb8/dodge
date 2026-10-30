@@ -1,0 +1,217 @@
+<?xml version="1.0"?>
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<recovery>
+  <pages>
+    <page name="dodge_wifi">
+      <template name="base"/>
+      <text style="text_ab_title"><placement x="%col1_x_indent%" y="%ab_bc_y%"/><text>Wi-Fi</text></text>
+      <text style="text_body1_dark"><placement x="%col1_x_caption%" y="%row1_1_y%"/><text>%dodge_wifi_summary%</text></text>
+      <text style="text_body2_dark"><placement x="%col1_x_caption%" y="%row1_2_y%"/><text>%dodge_wifi_ip%</text></text>
+      <button style="btn_raised_hl">
+        <condition var1="dodge_wifi_enabled" var2="0"/>
+        <placement x="%center_x%" y="%row2_1_y%" placement="4"/>
+        <text>{@wifi_enable=Enable Wi-Fi}</text>
+        <action function="wifiprepare"/>
+        <action function="wifi">enable</action>
+      </button>
+      <listbox style="group_list_flat">
+        <condition var1="dodge_wifi_enabled" var2="1"/>
+        <placement x="0" y="%row2_1_y%" w="%screen_w%" h="%dodge_wifi_list_h%"/>
+        <iconsize w="48" h="120"/>
+        <data name="dodge_wifi_generation" requireReload="1"/>
+        <listitem name="{@wifi_scan=Refresh networks}"><action function="wifi">scan</action></listitem>
+        <listitem name="{@wifi_disconnect=Disconnect}"><action function="wifi">disconnect</action></listitem>
+        <listitem name="{@wifi_disable=Turn Wi-Fi off}"><action function="wifi">disable</action></listitem>
+      <listitem name="%dodge_wifi_row_0%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="0"/>
+        <action function="wifi">select:0</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_1%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="1"/>
+        <action function="wifi">select:1</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_2%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="2"/>
+        <action function="wifi">select:2</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_3%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="3"/>
+        <action function="wifi">select:3</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_4%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="4"/>
+        <action function="wifi">select:4</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_5%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="5"/>
+        <action function="wifi">select:5</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_6%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="6"/>
+        <action function="wifi">select:6</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_7%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="7"/>
+        <action function="wifi">select:7</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_8%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="8"/>
+        <action function="wifi">select:8</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_9%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="9"/>
+        <action function="wifi">select:9</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_10%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="10"/>
+        <action function="wifi">select:10</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_11%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="11"/>
+        <action function="wifi">select:11</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_12%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="12"/>
+        <action function="wifi">select:12</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_13%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="13"/>
+        <action function="wifi">select:13</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_14%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="14"/>
+        <action function="wifi">select:14</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_15%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="15"/>
+        <action function="wifi">select:15</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_16%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="16"/>
+        <action function="wifi">select:16</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_17%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="17"/>
+        <action function="wifi">select:17</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_18%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="18"/>
+        <action function="wifi">select:18</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_19%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="19"/>
+        <action function="wifi">select:19</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_20%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="20"/>
+        <action function="wifi">select:20</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_21%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="21"/>
+        <action function="wifi">select:21</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_22%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="22"/>
+        <action function="wifi">select:22</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_23%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="23"/>
+        <action function="wifi">select:23</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_24%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="24"/>
+        <action function="wifi">select:24</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_25%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="25"/>
+        <action function="wifi">select:25</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_26%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="26"/>
+        <action function="wifi">select:26</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_27%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="27"/>
+        <action function="wifi">select:27</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_28%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="28"/>
+        <action function="wifi">select:28</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_29%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="29"/>
+        <action function="wifi">select:29</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_30%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="30"/>
+        <action function="wifi">select:30</action>
+      </listitem>
+      <listitem name="%dodge_wifi_row_31%">
+        <condition var1="dodge_wifi_count" op="&gt;" var2="31"/>
+        <action function="wifi">select:31</action>
+      </listitem>
+      </listbox>
+      <template name="gestures"/>
+      <action><touch key="back"/><action function="page">settings</action></action>
+      <action><touch key="home"/><action function="page">main</action></action>
+    </page>
+    <page name="dodge_wifi_connect">
+      <template name="base_key"/>
+      <text style="text_ab_title"><placement x="%col1_x_indent%" y="%ab_bc_y%"/><text>Wi-Fi</text></text>
+      <text style="text_body1_dark"><placement x="%col1_x_caption%" y="%row1_1_y%"/><text>%dodge_wifi_selected%</text></text>
+      <text style="text_body2_dark"><placement x="%col1_x_caption%" y="%row1_2_y%"/><text>%dodge_wifi_security%</text></text>
+      <text style="text_body1_dark">
+        <condition var1="dodge_wifi_need_password" var2="1"/>
+        <placement x="%col1_x_caption%" y="%row2_1_y%"/><text>{@wifi_password=Password}</text>
+      </text>
+      <input>
+        <condition var1="dodge_wifi_need_password" var2="1"/>
+        <condition var1="dodge_wifi_show_password" var2="0"/>
+        <placement x="%col1_x_caption%" y="%row2_2_y%" w="%input_w%" h="%input_height%"/>
+        <font resource="body1" color="%text%"/>
+        <data name="dodge_wifi_password" mask="*"/>
+        <restrict minlen="0" maxlen="64"/>
+        <action function="wifi">connect</action>
+      </input>
+      <input>
+        <condition var1="dodge_wifi_need_password" var2="1"/>
+        <condition var1="dodge_wifi_show_password" var2="1"/>
+        <placement x="%col1_x_caption%" y="%row2_2_y%" w="%input_w%" h="%input_height%"/>
+        <font resource="body1" color="%text%"/>
+        <data name="dodge_wifi_password"/>
+        <restrict minlen="0" maxlen="64"/>
+        <action function="wifi">connect</action>
+      </input>
+      <checkbox style="checkbox">
+        <condition var1="dodge_wifi_need_password" var2="1"/>
+        <placement x="%col1_x_caption%" y="%row3_1_y%"/>
+        <text>{@wifi_show_password=Show password}</text>
+        <data variable="dodge_wifi_show_password"/>
+      </checkbox>
+      <text style="text_body2_dark"><placement x="%col1_x_caption%" y="%row3_2_y%"/><text>%dodge_wifi_input_error%</text></text>
+      <button style="btn_raised_hl">
+        <condition var1="dodge_wifi_supported" var2="1"/>
+        <condition var1="dodge_wifi_valid_password" var2="1"/>
+        <placement x="%center_x%" y="%row4_1_y%" placement="4"/>
+        <text>{@wifi_connect=Connect}</text><action function="wifi">connect</action>
+      </button>
+      <button style="btn_raised">
+        <placement x="%center_x%" y="%row5_1_y%" placement="4"/>
+        <text>{@cancel_btn=Cancel}</text><action function="wifi">cancel</action>
+      </button>
+      <template name="gestures_key"/>
+      <action><touch key="back"/><action function="wifi">cancel</action></action>
+      <action><touch key="home"/><action function="wifi">cancel</action><action function="page">main</action></action>
+    </page>
+    <page name="dodge_wifi_unsupported">
+      <template name="base"/>
+      <text style="text_ab_title"><placement x="%col1_x_indent%" y="%ab_bc_y%"/><text>Wi-Fi</text></text>
+      <text style="text_body1_dark"><placement x="%col1_x_caption%" y="%row1_1_y%"/><text>%dodge_wifi_selected%</text></text>
+      <text style="text_body2_dark"><placement x="%col1_x_caption%" y="%row2_1_y%"/><text>{@wifi_unsupported=This security type is not supported}</text></text>
+      <button style="btn_raised_hl"><placement x="%center_x%" y="%row3_1_y%" placement="4"/><text>{@back_btn=Back}</text><action function="wifi">cancel</action></button>
+      <template name="gestures"/>
+      <action><touch key="back"/><action function="wifi">cancel</action></action>
+      <action><touch key="home"/><action function="page">main</action></action>
+    </page>
+  </pages>
+</recovery>

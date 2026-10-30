@@ -1,0 +1,7 @@
+#!/system/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+BB=/system/bin/busybox
+[ -x "$BB" ] || BB=/sbin/busybox
+"$BB" ip address flush dev wlan0
+"$BB" ip route flush dev wlan0
+exit 0

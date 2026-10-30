@@ -1,0 +1,42 @@
+#!/system/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Called only with fixed arguments by recovery; never receives credentials.
+set -eu
+BB=/system/bin/busybox
+[ -x "$BB" ] || BB=/sbin/busybox
+stage=/tmp/dodge-wifi
+mkdir -p "$stage"
+case "${1:-}" in
+source)
+    if [ -d /vendor/lib/dodge-wifi-modules ]; then
+        mkdir -p "$stage/source"
+        "$BB" cp -a /vendor/lib/dodge-wifi-modules/. "$stage/source/"
+    fi
+    ;;
+stock)
+    mkdir -p "$stage/stock"
+    # Preserve dependency metadata and every dependency, not just the WLAN leaf.
+    for dir in /vendor/lib/modules /vendor_dlkm/lib/modules; do
+        [ ! -d "$dir" ] || "$BB" cp -a "$dir/." "$stage/stock/"
+    done
+    for dir in firmware etc/wifi; do
+        if [ -d "/vendor/$dir" ]; then
+            mkdir -p "$stage/vendor/$dir"
+            "$BB" cp -a "/vendor/$dir/." "$stage/vendor/$dir/"
+        fi
+    done
+    ;;
+firmware)
+    mkdir -p /vendor/firmware_mnt
+    "$BB" mountpoint -q /vendor/firmware_mnt || mount -o bind /firmware /vendor/firmware_mnt
+    for dir in firmware etc/wifi; do
+        if [ -d "$stage/vendor/$dir" ]; then
+            mkdir -p "/vendor/$dir"
+            "$BB" mountpoint -q "/vendor/$dir" || mount -o bind "$stage/vendor/$dir" "/vendor/$dir"
+        fi
+    done
+    # Qualcomm firmware names are relative to this directory.
+    [ ! -w /sys/module/firmware_class/parameters/path ] || echo /vendor/firmware_mnt/image > /sys/module/firmware_class/parameters/path
+    ;;
+*) exit 2 ;;
+esac

@@ -1,0 +1,40 @@
+diff --git a/wpa_supplicant/Android.mk b/wpa_supplicant/Android.mk
+index 03dc209..99db333 100644
+--- a/wpa_supplicant/Android.mk
++++ b/wpa_supplicant/Android.mk
+@@ -20,6 +20,11 @@ endif
+ 
+ include $(LOCAL_PATH)/android.config
+ 
++# Standalone recovery has no binder/supplicant HAL service.
++ifeq ($(TARGET_DEVICE),dodge)
++CONFIG_CTRL_IFACE_AIDL :=
++endif
++
+ # To ignore possible wrong network configurations
+ L_CFLAGS = -DWPA_IGNORE_CONFIG_ERRORS
+ 
+@@ -1964,6 +1969,23 @@ endif
+ endif
+ include $(BUILD_EXECUTABLE)
+ 
++ifeq ($(TARGET_DEVICE),dodge)
++include $(CLEAR_VARS)
++LOCAL_MODULE := wpa_supplicant_dodge
++LOCAL_RECOVERY_MODULE := true
++LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/system/bin
++LOCAL_LICENSE_KINDS := SPDX-license-identifier-BSD SPDX-license-identifier-BSD-3-Clause SPDX-license-identifier-ISC legacy_unencumbered
++LOCAL_LICENSE_CONDITIONS := notice unencumbered
++LOCAL_NOTICE_FILE := $(LOCAL_PATH)/../LICENSE
++# -UANDROID removes keystore-engine hooks; network configuration is in RAM only.
++LOCAL_CFLAGS := $(L_CFLAGS) -UANDROID
++LOCAL_SRC_FILES := $(OBJS)
++LOCAL_C_INCLUDES := $(INCLUDES)
++LOCAL_SHARED_LIBRARIES := libc libcutils liblog libcrypto libssl libnl
++include $(BUILD_EXECUTABLE)
++endif
++
++
+ ########################
+ #
+ #include $(CLEAR_VARS)

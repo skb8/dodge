@@ -1,1 +1,7 @@
 .vscode-ctags
+
+# Generated build output
+wifi/modules/
+artifacts/
+.tests-build/
+__pycache__/

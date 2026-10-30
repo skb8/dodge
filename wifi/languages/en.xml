@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="wifi_enable">Enable Wi-Fi</string>
+  <string name="wifi_disable">Turn Wi-Fi off</string>
+  <string name="wifi_scan">Refresh networks</string>
+  <string name="wifi_disconnect">Disconnect</string>
+  <string name="wifi_connect">Connect</string>
+  <string name="wifi_password">Password</string>
+  <string name="wifi_show_password">Show password</string>
+  <string name="wifi_off">Wi-Fi off</string>
+  <string name="wifi_online">Internet available</string>
+  <string name="wifi_unverified">Connected; internet unverified</string>
+  <string name="wifi_captive_portal">Sign-in required</string>
+  <string name="wifi_starting">Starting Wi-Fi</string>
+  <string name="wifi_scanning">Scanning</string>
+  <string name="wifi_associating">Connecting</string>
+  <string name="wifi_obtaining_ip">Obtaining IP address</string>
+  <string name="wifi_checking">Checking internet</string>
+  <string name="wifi_authentication_failed">Authentication failed; check password</string>
+  <string name="wifi_invalid_password">Invalid password</string>
+  <string name="wifi_dhcp_failed">Could not obtain IP address</string>
+  <string name="wifi_connection_timeout">Connection timed out</string>
+  <string name="wifi_unavailable">Wi-Fi driver or supplicant unavailable</string>
+  <string name="wifi_supplicant_error">Connection request failed</string>
+  <string name="wifi_disconnected">Disconnected</string>
+  <string name="wifi_unsupported">This security type is not supported</string>
+</resources>

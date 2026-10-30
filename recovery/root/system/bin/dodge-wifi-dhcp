@@ -1,0 +1,6 @@
+#!/system/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+BB=/system/bin/busybox
+[ -x "$BB" ] || BB=/sbin/busybox
+export DODGE_WIFI_SESSION="$(getprop sys.dodge.wifi.session)"
+exec "$BB" udhcpc -f -n -i wlan0 -t 5 -T 3 -s /system/bin/dodge-wifi-lease

@@ -77,3 +77,22 @@ on property:vendor.sys.listeners.registered=true
     start vendor.ssgtzd
     start vendor.keymint-strongbox
 
+
+# Explicitly enabled by the Wi-Fi page; no background radio startup at boot.
+service dodge_wifi_supplicant /system/bin/wpa_supplicant_dodge -Dnl80211 -iwlan0 -c/system/etc/wpa_supplicant_dodge.conf
+    disabled
+    user root
+    group root wifi inet net_admin net_raw
+    seclabel u:r:recovery:s0
+    onrestart setprop sys.dodge.wifi.lease ""
+
+service dodge_wifi_dhcp /system/bin/sh /system/bin/dodge-wifi-dhcp
+    disabled
+    oneshot
+    user root
+    group root wifi inet net_admin net_raw
+    seclabel u:r:recovery:s0
+
+on init
+    mkdir /tmp/dodge-wifi 0700 root root
+    mkdir /tmp/dodge-wifi/ctrl 0700 root root

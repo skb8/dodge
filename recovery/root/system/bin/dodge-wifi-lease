@@ -1,0 +1,24 @@
+#!/system/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+# udhcpc only; ignore callbacks from a previous connection attempt.
+[ "$interface" = wlan0 ] || exit 1
+[ "$DODGE_WIFI_SESSION" = "$(getprop sys.dodge.wifi.session)" ] || exit 0
+BB=/system/bin/busybox
+[ -x "$BB" ] || BB=/sbin/busybox
+case "$1" in
+bound|renew)
+    "$BB" ifconfig wlan0 "$ip" netmask "${subnet:-255.255.255.0}" up || exit 1
+    "$BB" ip route flush dev wlan0
+    # DHCP router/DNS values are data, expanded as quoted arguments.
+    gateway=${router%% *}
+    [ -z "$gateway" ] || "$BB" ip route add default via "$gateway" dev wlan0
+    setprop sys.dodge.wifi.dns "${dns%% *}"
+    setprop sys.dodge.wifi.lease "$ip"
+    ;;
+deconfig|nak|leasefail)
+    setprop sys.dodge.wifi.lease ''
+    setprop sys.dodge.wifi.dns ''
+    "$BB" ip address flush dev wlan0
+    "$BB" ip route flush dev wlan0
+    ;;
+esac

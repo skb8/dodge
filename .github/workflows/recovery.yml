@@ -1,0 +1,157 @@
+name: Build OrangeFox dodge image
+
+on:
+  push:
+    branches: [fox_14.1]
+  pull_request:
+    branches: [fox_14.1]
+  workflow_dispatch:
+    inputs:
+      source_driver:
+        description: Build WLAN modules from the full official OnePlus 13 source manifest
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: recovery-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Host Wi-Fi tests (ASan and UBSan, including real control sockets)
+        run: scripts/test-wifi.sh
+      - name: Native recovery adapter syntax
+        run: python3 scripts/check-native-syntax.py
+      - name: Compile Python build helpers
+        run: python3 -m compileall -q scripts
+      - name: Verify source patches against clean upstream checkouts
+        run: |
+          git clone --depth=1 -b fox_14.1 https://gitlab.com/OrangeFox/bootable/recovery.git /tmp/recovery
+          git -C /tmp/recovery fetch --depth=1 origin bcff7d6e9ee6f80387d1b036c0f9e58216053b69
+          git -C /tmp/recovery checkout --detach FETCH_HEAD
+          git -C /tmp/recovery apply --check "$GITHUB_WORKSPACE/patches/orangefox-wifi.patch"
+          git clone --depth=1 -b android-14.0.0_r1 https://android.googlesource.com/platform/external/wpa_supplicant_8 /tmp/wpa
+          git -C /tmp/wpa apply --check "$GITHUB_WORKSPACE/patches/wpa-recovery.patch"
+
+  oneplus-wlan:
+    needs: validate
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.source_driver)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free runner space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h
+      - name: Add build swap
+        run: |
+          sudo fallocate -l 8G /mnt/dodge-build.swap
+          sudo chmod 600 /mnt/dodge-build.swap
+          sudo mkswap /mnt/dodge-build.swap
+          sudo swapon /mnt/dodge-build.swap
+      - name: Install kernel build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y repo bc bison flex build-essential libssl-dev libelf-dev dwarves lz4 zstd python3 cpio rsync kmod
+          git config --global user.name 'Recovery builder'
+          git config --global user.email 'recovery-builder@users.noreply.github.com'
+      - name: Sync full OnePlus source and build matching WLAN dependency closure
+        run: scripts/build-oneplus-wifi.sh "$RUNNER_TEMP/oneplus13-kernel" 2>&1 | tee kernel-build.log
+      - name: Upload source-built WLAN modules and pinned manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: oneplus13-source-wlan-${{ github.sha }}
+          path: |
+            wifi/modules/
+            artifacts/oneplus-kernel-manifest.xml
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload kernel diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oneplus13-kernel-log-${{ github.sha }}
+          path: kernel-build.log
+          retention-days: 7
+
+  recovery:
+    needs: [validate, oneplus-wlan]
+    if: >-
+      always() && needs.validate.result == 'success' &&
+      (needs.oneplus-wlan.result == 'success' || needs.oneplus-wlan.result == 'skipped') &&
+      github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: device-tree
+      - name: Free runner space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h
+      - name: Add build swap
+        run: |
+          sudo fallocate -l 8G /mnt/dodge-build.swap
+          sudo chmod 600 /mnt/dodge-build.swap
+          sudo mkswap /mnt/dodge-build.swap
+          sudo swapon /mnt/dodge-build.swap
+      - name: Install recovery build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y repo bc bison flex build-essential zip curl git libssl-dev libelf-dev libxml2-utils xsltproc fontconfig lz4 zstd cpio rsync unzip python3
+          git config --global user.name 'Recovery builder'
+          git config --global user.email 'recovery-builder@users.noreply.github.com'
+      - name: Download source-built WLAN modules
+        if: needs.oneplus-wlan.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: oneplus13-source-wlan-${{ github.sha }}
+          path: source-wlan
+      - name: Sync OrangeFox 14.1
+        run: |
+          git clone https://gitlab.com/OrangeFox/sync.git "$RUNNER_TEMP/fox-sync"
+          git -C "$RUNNER_TEMP/fox-sync" checkout 03434a833701f73430cd085738ae0bf54f2231f1
+          cd "$RUNNER_TEMP/fox-sync"
+          ./orangefox_sync.sh --branch 14.1 --path "$GITHUB_WORKSPACE/android"
+      - name: Install this exact device-tree commit and pinned native sources
+        run: |
+          mkdir -p android/device/oneplus/dodge
+          rsync -a --exclude=.git device-tree/ android/device/oneplus/dodge/
+          if [ -d source-wlan/wifi/modules ]; then
+            mkdir -p android/device/oneplus/dodge/wifi/modules
+            cp -a source-wlan/wifi/modules/. android/device/oneplus/dodge/wifi/modules/
+          fi
+          git -C android/bootable/recovery fetch --depth=1 origin bcff7d6e9ee6f80387d1b036c0f9e58216053b69
+          git -C android/bootable/recovery checkout --detach FETCH_HEAD
+          android/device/oneplus/dodge/scripts/sync-wifi-deps.sh "$GITHUB_WORKSPACE/android"
+          git -C android/external/wpa_supplicant_8 fetch --depth=1 https://android.googlesource.com/platform/external/wpa_supplicant_8 5c473a2f2e6f8fda0f8334e75b66a2c203bf8695
+          git -C android/external/wpa_supplicant_8 checkout --detach FETCH_HEAD
+      - name: Build and verify recovery.img
+        run: android/device/oneplus/dodge/scripts/build-recovery.sh "$GITHUB_WORKSPACE/android" 2>&1 | tee recovery-build.log
+      - name: Upload flashable image, checksum and source manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: OrangeFox-dodge-${{ github.sha }}
+          path: |
+            android/device/oneplus/dodge/artifacts/OrangeFox-dodge.img
+            android/device/oneplus/dodge/artifacts/SHA256SUMS
+            android/device/oneplus/dodge/artifacts/recovery-manifest.xml
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload recovery diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: recovery-build-log-${{ github.sha }}
+          path: |
+            recovery-build.log
+            android/out/soong/soong.log
+          retention-days: 7

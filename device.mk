@@ -34,3 +34,12 @@ PRODUCT_SOONG_NAMESPACES += $(LOCAL_PATH)
 # some OrangeFox-specific settings
 $(call inherit-product, $(LOCAL_PATH)/fox_dodge.mk)
 #
+
+# Built as a recovery executable by patches/wpa-recovery.patch.
+PRODUCT_PACKAGES += wpa_supplicant_dodge
+
+# Optional source-built module closure, staged by scripts/build-oneplus-wifi.sh.
+DODGE_WIFI_MODULES := $(LOCAL_PATH)/wifi/modules
+ifneq ($(wildcard $(DODGE_WIFI_MODULES)/modules.dep),)
+PRODUCT_COPY_FILES += $(call find-copy-subdir-files,*,$(DODGE_WIFI_MODULES),$(TARGET_COPY_OUT_RECOVERY)/root/vendor/lib/dodge-wifi-modules)
+endif
