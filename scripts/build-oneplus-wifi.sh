@@ -7,7 +7,11 @@ mkdir -p "$KERNEL_DIR"
 cd "$KERNEL_DIR"
 if [[ ! -d .repo ]]; then
     repo init -u https://github.com/OnePlusOSS/kernel_manifest.git \
-        -b oneplus/sm8750 -m oneplus_13_b.xml --depth=1
+        -b "${ONEPLUS_MANIFEST_REVISION:-oneplus/sm8750}" -m oneplus_13_b.xml --depth=1
+fi
+if [[ -n "${ONEPLUS_LOCKED_MANIFEST:-}" ]]; then
+    # Resolve once for the cache key and build those exact commits.
+    cp "$ONEPLUS_LOCKED_MANIFEST" .repo/manifests/oneplus_13_b.xml
 fi
 repo sync -c -j"${SYNC_JOBS:-4}" --no-clone-bundle --no-tags
 mkdir -p "$DEVICE_DIR/artifacts"

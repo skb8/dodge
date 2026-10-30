@@ -1,3 +1,21 @@
+diff --git a/Android.bp b/Android.bp
+index ddc24cf..6708430 100755
+--- a/Android.bp
++++ b/Android.bp
+@@ -142,3 +142,13 @@ prebuilt_etc {
+     sub_dir: "init/hw",
+     recovery: true,
+ }
++
++// Filegroups declare source paths in the owning package, then export them to GUI.
++filegroup {
++    name: "dodge_wifi_gui_sources",
++    srcs: [
++        "dodge_wifi/wifi.cpp",
++        "dodge_wifi/wifi_core.cpp",
++    ],
++    visibility: ["//bootable/recovery/gui:__pkg__"],
++}
 diff --git a/Android.mk b/Android.mk
 index fc1f1f1..2ddcf59 100755
 --- a/Android.mk
@@ -11,19 +29,18 @@ index fc1f1f1..2ddcf59 100755
      fixContexts.cpp \
      twrpTar.cpp \
 diff --git a/gui/Android.bp b/gui/Android.bp
-index 2e54e5a..9ce14ed 100644
+index 2e54e5a..5e9ce4e 100644
 --- a/gui/Android.bp
 +++ b/gui/Android.bp
-@@ -60,6 +60,8 @@ cc_library_static {
+@@ -60,6 +60,7 @@ cc_library_static {
          "text.cpp",
          "image.cpp",
          "action.cpp",
-+        "../dodge_wifi/wifi.cpp",
-+        "../dodge_wifi/wifi_core.cpp",
++        ":dodge_wifi_gui_sources",
          "console.cpp",
          "fill.cpp",
          "button.cpp",
-@@ -88,6 +90,7 @@ cc_library_static {
+@@ -88,6 +89,7 @@ cc_library_static {
      shared_libs: [
          "libminuitwrp",
          "libc",

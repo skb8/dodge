@@ -5,3 +5,4 @@ wifi/modules/
 artifacts/
 .tests-build/
 __pycache__/
+.source-lock/

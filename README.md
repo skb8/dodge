@@ -72,3 +72,17 @@ Source integration is pinned/tested against OrangeFox recovery
 The apply script checks patch compatibility and supports being run again.
 It fails on incompatible upstream changes rather than silently skipping Wi-Fi.
 A complete Android build needs substantially more storage than just this tree.
+
+### Actions caches
+
+Recovery uses a compressed **3 GB ccache**, restored across commits and saved
+also after failed compilations so completed work can be reused. The compiler's
+content and source/header changes are still checked by ccache. Cache statistics
+are shown at the end of the recovery job.
+
+The OnePlus job resolves every project revision to an immutable commit before
+looking up its **WLAN module-package cache**. Its key includes the complete source
+lock and build/collection scripts; no prefix fallback is allowed for modules.
+A hit skips the full kernel sync/build, then verifies module dependencies and the
+built manifest against the source lock before publishing the package. A changed
+OnePlus branch or build recipe therefore triggers a fresh driver build.
