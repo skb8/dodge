@@ -78,6 +78,44 @@ The apply script checks patch compatibility and supports being run again.
 It fails on incompatible upstream changes rather than silently skipping Wi-Fi.
 A complete Android build needs substantially more storage than just this tree.
 
+### Image type and installation
+
+`OrangeFox-dodge.img` is a **recovery partition image**, not a standalone image
+for `fastboot boot`. This device tree sets
+`BOARD_EXCLUDE_KERNEL_FROM_RECOVERY_IMAGE := true`: its Android v4 header has
+`kernel_size = 0`, and recovery uses the kernel from the phone's boot slot.
+The 100 MiB file size is the configured recovery partition size. Renaming the
+file to `boot.img` does not change its format. A loader can reject it with
+`Failed to load/authenticate boot image: Bad Buffer Size` when used with
+`fastboot boot`.
+
+For installation, first confirm the device's recovery partition from bootloader
+fastboot (these commands only read information):
+
+```sh
+fastboot getvar current-slot
+fastboot getvar partition-size:recovery_a
+fastboot getvar partition-size:recovery_b
+```
+
+On an unlocked OnePlus 13 with the expected recovery partitions, keep a matching
+stock recovery image available, then install to the current recovery slot:
+
+```sh
+fastboot flash recovery OrangeFox-dodge.img
+fastboot reboot recovery
+```
+
+This image belongs only in `recovery`; do not flash it to `boot`, `init_boot` or
+`vendor_boot`. Neither compilation nor the image checks establish hardware boot
+compatibility.
+
+For temporary loading with `fastboot boot`, a separate image must include a
+compatible kernel. Use the original `boot.img` from the phone's **installed
+firmware** to obtain that prebuilt kernel. This does not require compiling the
+full OnePlus kernel. The kernel-less recovery artifact cannot be used directly
+for that mode.
+
 ### Actions caches
 
 Recovery uses a compressed **3 GB ccache**, restored across commits and saved
