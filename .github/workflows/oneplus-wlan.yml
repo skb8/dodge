@@ -1,0 +1,95 @@
+name: Build OnePlus WLAN modules
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fox_14.1]
+    paths:
+      - '.github/workflows/oneplus-wlan.yml'
+      - 'scripts/build-oneplus-wifi.sh'
+      - 'scripts/run-oneplus-build.sh'
+      - 'scripts/collect-wifi-modules.py'
+      - 'scripts/lock-oneplus-source.py'
+      - 'scripts/check-wlan-cache.py'
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oneplus-wlan-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  oneplus-wlan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve immutable official OnePlus source revisions
+        id: source-lock
+        run: |
+          python3 scripts/lock-oneplus-source.py "$RUNNER_TEMP/oneplus-manifest" "$GITHUB_WORKSPACE/.source-lock"
+          echo "manifest-revision=$(cat .source-lock/manifest-revision)" >> "$GITHUB_OUTPUT"
+      - name: Restore exact source-built WLAN package
+        id: wlan-cache
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            wifi/modules
+            artifacts/oneplus-kernel-manifest.xml
+          key: ${{ runner.os }}-oneplus13-wlan-v1-${{ hashFiles('.source-lock/oneplus_13_b.xml', 'scripts/build-oneplus-wifi.sh', 'scripts/run-oneplus-build.sh', 'scripts/collect-wifi-modules.py', 'scripts/lock-oneplus-source.py', 'scripts/check-wlan-cache.py') }}
+      - name: Free runner space
+        if: steps.wlan-cache.outputs.cache-hit != 'true'
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h
+      - name: Add build swap
+        if: steps.wlan-cache.outputs.cache-hit != 'true'
+        run: |
+          sudo fallocate -l 8G /mnt/dodge-build.swap
+          sudo chmod 600 /mnt/dodge-build.swap
+          sudo mkswap /mnt/dodge-build.swap
+          sudo swapon /mnt/dodge-build.swap
+      - name: Install kernel build dependencies
+        if: steps.wlan-cache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y repo bc bison flex build-essential libssl-dev libelf-dev dwarves lz4 zstd python3 cpio rsync kmod
+          git config --global user.name 'Recovery builder'
+          git config --global user.email 'recovery-builder@users.noreply.github.com'
+      - name: Sync full OnePlus source and build matching WLAN dependency closure
+        if: steps.wlan-cache.outputs.cache-hit != 'true'
+        env:
+          ONEPLUS_MANIFEST_REVISION: ${{ steps.source-lock.outputs.manifest-revision }}
+          ONEPLUS_LOCKED_MANIFEST: ${{ github.workspace }}/.source-lock/oneplus_13_b.xml
+        run: scripts/build-oneplus-wifi.sh "$RUNNER_TEMP/oneplus13-kernel" 2>&1 | tee kernel-build.log
+      - name: Verify WLAN package and source-lock match
+        run: python3 scripts/check-wlan-cache.py .source-lock/oneplus_13_b.xml artifacts/oneplus-kernel-manifest.xml wifi/modules
+      - name: Save exact source-built WLAN package
+        if: steps.wlan-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            wifi/modules
+            artifacts/oneplus-kernel-manifest.xml
+          key: ${{ steps.wlan-cache.outputs.cache-primary-key }}
+      - name: Upload source-built WLAN modules and pinned manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: oneplus13-source-wlan-${{ github.sha }}
+          path: |
+            wifi/modules/
+            artifacts/oneplus-kernel-manifest.xml
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload kernel diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oneplus13-kernel-log-${{ github.sha }}
+          path: kernel-build.log
+          retention-days: 7

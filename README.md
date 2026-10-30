@@ -47,13 +47,17 @@ Native Wi-Fi is under Settings → Wi-Fi, with connection state on the lock scre
 and pull-down console. It uses the recovery theme; there is no camera/QR flow or
 saved-networks menu. See [Wi-Fi implementation and limitations](wifi/README.md).
 
-GitHub Actions → **Build OrangeFox dodge image** builds the official OnePlus WLAN
-module dependency set and then OrangeFox `recovery.img` on pushes to `fox_14.1`.
-The main branch is `fox_14.1`. Manual **Run workflow** supports disabling the
-source-driver build to build recovery against the installed slot's modules.
-Download `OrangeFox-dodge-<commit>` for `OrangeFox-dodge.img`, `SHA256SUMS` and the
-pinned recovery source manifest. WLAN modules, their source manifest and build
-logs are separate artifacts. Pull requests run host validation only.
+GitHub Actions → **Build OrangeFox dodge image** builds `recovery.img` on pushes
+to the main branch `fox_14.1`. It does not rebuild the OnePlus kernel. Download
+`OrangeFox-dodge-<commit>` for `OrangeFox-dodge.img`, `SHA256SUMS` and its source
+manifest. It includes prebuilt modules when present in `wifi/modules/`; the
+runtime can also load the installed slot's compatible modules from vendor_dlkm.
+
+**Build OnePlus WLAN modules** is a separate workflow: run it manually to refresh
+the driver package. Changes to its source-build scripts also trigger it, without
+blocking recovery builds. Its artifact contains the WLAN modules, dependency
+metadata and pinned source manifest. Put that package in `wifi/modules/` and
+commit it to include it in future recovery images. Pull requests run host checks.
 
 For a local build, sync OrangeFox as above, put this tree at
 `device/oneplus/dodge`, and run from the Android source root:

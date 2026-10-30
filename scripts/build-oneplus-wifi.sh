@@ -20,3 +20,4 @@ repo manifest -r -o "$DEVICE_DIR/artifacts/oneplus-kernel-manifest.xml"
 # Inherited errexit breaks upstream config/variant discovery in child shells.
 env -u SHELLOPTS TERM=xterm bash "$DEVICE_DIR/scripts/run-oneplus-build.sh" "$KERNEL_DIR"
 python3 "$DEVICE_DIR/scripts/collect-wifi-modules.py" "$KERNEL_DIR" "$DEVICE_DIR/wifi/modules"
+cp "$DEVICE_DIR/artifacts/oneplus-kernel-manifest.xml" "$DEVICE_DIR/wifi/modules/source-manifest.xml"

@@ -40,9 +40,12 @@ def collect(name):
 for seed in seeds:
     collect(seed)
 # Only clean this script's generated destination after the complete closure was verified.
+readme = (target / 'README.md').read_text() if (target / 'README.md').exists() else None
 if target.exists():
     shutil.rmtree(target)
 target.mkdir(parents=True)
+if readme is not None:
+    (target / 'README.md').write_text(readme)
 vermagic = set()
 for name in sorted(closure):
     shutil.copy2(modules[name], target / modules[name].name)
