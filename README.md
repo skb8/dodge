@@ -53,11 +53,12 @@ to the main branch `fox_14.1`. It does not rebuild the OnePlus kernel. Download
 manifest. It includes prebuilt modules when present in `wifi/modules/`; the
 runtime can also load the installed slot's compatible modules from vendor_dlkm.
 
-**Build OnePlus WLAN modules** is a separate workflow: run it manually to refresh
-the driver package. Changes to its source-build scripts also trigger it, without
-blocking recovery builds. Its artifact contains the WLAN modules, dependency
-metadata and pinned source manifest. Put that package in `wifi/modules/` and
-commit it to include it in future recovery images. Pull requests run host checks.
+**Build OnePlus WLAN modules** is an experimental, manual-only workflow. It is
+never started by a push or required by recovery builds. The current upstream
+full-build entry point did not emit WLAN modules in the tested manifest; a
+source-built WLAN package has not been published. Ordinary recovery builds use
+compatible modules from the installed slot, or a complete prebuilt package
+committed in `wifi/modules/`. Pull requests run host checks.
 
 For a local build, sync OrangeFox as above, put this tree at
 `device/oneplus/dodge`, and run from the Android source root:
@@ -89,4 +90,4 @@ looking up its **WLAN module-package cache**. Its key includes the complete sour
 lock and build/collection scripts; no prefix fallback is allowed for modules.
 A hit skips the full kernel sync/build, then verifies module dependencies and the
 built manifest against the source lock before publishing the package. A changed
-OnePlus branch or build recipe therefore triggers a fresh driver build.
+OnePlus branch or build recipe invalidates that cache on the next manual run.

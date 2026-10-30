@@ -69,8 +69,9 @@ setup and `prepare_vendor.sh sun perf` path used by `oplus_build_kernel.sh`,
 and stages only WLAN and its transitive module
 dependencies. Source manifests and module vermagic accompany the build artifacts.
 No kernel or camera driver is added to recovery.img. Source modules are optional
-for manual local builds, and are rebuilt by the separate OnePlus WLAN workflow, rather than by every
-recovery build. A prebuilt package committed in `wifi/modules/` is included directly.
+for manual local builds. The separate OnePlus WLAN workflow is experimental and
+manual-only; the tested upstream full-build entry point did not emit WLAN modules.
+It never runs automatically or blocks a recovery build. A prebuilt package committed in `wifi/modules/` is included directly.
 
 This recovery explicitly excludes the kernel from its image. The kernel comes
 from the device's boot slot. A source-built module must match that kernel's ABI,

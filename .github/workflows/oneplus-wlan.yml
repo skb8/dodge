@@ -2,15 +2,6 @@ name: Build OnePlus WLAN modules
 
 on:
   workflow_dispatch:
-  push:
-    branches: [fox_14.1]
-    paths:
-      - '.github/workflows/oneplus-wlan.yml'
-      - 'scripts/build-oneplus-wifi.sh'
-      - 'scripts/run-oneplus-build.sh'
-      - 'scripts/collect-wifi-modules.py'
-      - 'scripts/lock-oneplus-source.py'
-      - 'scripts/check-wlan-cache.py'
 
 defaults:
   run:
