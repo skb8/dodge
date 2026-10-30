@@ -26,8 +26,8 @@ index 03dc209..99db333 100644
 +LOCAL_LICENSE_KINDS := SPDX-license-identifier-BSD SPDX-license-identifier-BSD-3-Clause SPDX-license-identifier-ISC legacy_unencumbered
 +LOCAL_LICENSE_CONDITIONS := notice unencumbered
 +LOCAL_NOTICE_FILE := $(LOCAL_PATH)/../LICENSE
-+# -UANDROID removes keystore-engine hooks; network configuration is in RAM only.
-+LOCAL_CFLAGS := $(L_CFLAGS) -UANDROID
++# Standalone recovery uses neither keystore nor Android-specific Wi-Fi Direct hooks.
++LOCAL_CFLAGS := $(L_CFLAGS) -UANDROID -UANDROID_P2P
 +LOCAL_SRC_FILES := $(OBJS)
 +LOCAL_C_INCLUDES := $(INCLUDES)
 +LOCAL_SHARED_LIBRARIES := libc libcutils liblog libcrypto libssl libnl
